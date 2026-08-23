@@ -53,6 +53,16 @@ categoryUuid = categories[0]['id']
 sessions_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/sessions?eventUuid={eventUuid}&categoryUuid={categoryUuid}"
 sessions = fetch_https_data(sessions_endpoint)
 
+def select_session_by_type(session_type):
+    for s in sessions:
+        if s['type'] == session_type:
+            return s
+        
+race_session = select_session_by_type('RAC')
+sessionUuid = race_session['id']
+ranking_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/session/{sessionUuid}/classification?test=false"
+ranking = fetch_https_data(ranking_endpoint)
+
 if events is not None:
     print(type(events))
     if isinstance(events, list):
@@ -80,3 +90,14 @@ if sessions is not None:
             print(s['type'], s['number'])
     elif isinstance(sessions, dict):
         print(sessions.keys())
+
+if ranking is not None:
+    print(type(ranking))
+    if isinstance(ranking, list):
+        print(len(ranking))
+        print(ranking[0])
+    elif isinstance(ranking, dict):
+        print(ranking.keys())
+        print(type(ranking['classification']))
+        print(len(ranking['classification']))
+        print(ranking['classification'][0])
