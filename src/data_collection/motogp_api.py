@@ -1,8 +1,8 @@
 import requests as req
 
-def fetch_https_data(seasons_endpoint):
+def fetch_https_data(endpoint):
     try:
-        response = req.get(seasons_endpoint, timeout=10)
+        response = req.get(endpoint, timeout=10)
         response.raise_for_status()
 
         try:
@@ -21,13 +21,13 @@ def fetch_https_data(seasons_endpoint):
 
     return None
 
+seasons_endpoint = "https://api.motogp.pulselive.com/motogp/v1/results/seasons"
+seasons = fetch_https_data(seasons_endpoint)
+
 def select_season_by_year(year):
     for x in seasons:
         if x['year'] == year:
             return x
-
-seasons_endpoint = "https://api.motogp.pulselive.com/motogp/v1/results/seasons"
-seasons = fetch_https_data(seasons_endpoint)
 
 year = int(input("Select a season based on its year: "))
 while year >= 2026 or year < 1949:
@@ -40,8 +40,12 @@ while year >= 2026 or year < 1949:
 
 season_selected = select_season_by_year(year)
 seasonUuid = season_selected['id']
+
 events_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/events?seasonUuid={seasonUuid}&isFinished=true"
+categories_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/categories?seasonUuid={seasonUuid}"
+
 events = fetch_https_data(events_endpoint)
+categories = fetch_https_data(categories_endpoint)
 
 if events is not None:
     print(type(events))
@@ -50,3 +54,11 @@ if events is not None:
         print(events[0])
     elif isinstance(events, dict):
         print(events.keys())
+    
+if categories is not None:
+    print(type(categories))
+    if isinstance(categories, list):
+        print(len(categories))
+        print(categories[0])
+    elif isinstance(categories, dict):
+        print(categories.keys())
