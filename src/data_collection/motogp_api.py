@@ -1,4 +1,5 @@
 import requests as req
+import json
 
 def fetch_https_data(endpoint):
     try:
@@ -63,6 +64,10 @@ sessionUuid = race_session['id']
 ranking_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/session/{sessionUuid}/classification?test=false"
 ranking = fetch_https_data(ranking_endpoint)
 
+def save_raw_json(data, filename):
+    with open(f"data/raw/{filename}", "w") as f:
+        json.dump(data, f, indent=2)
+
 if events is not None:
     print(type(events))
     if isinstance(events, list):
@@ -92,6 +97,7 @@ if sessions is not None:
         print(sessions.keys())
 
 if ranking is not None:
+    save_raw_json(ranking, "motogp_2025_thailand_race_classification.json")
     print(type(ranking))
     if isinstance(ranking, list):
         print(len(ranking))
