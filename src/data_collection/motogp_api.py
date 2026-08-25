@@ -10,10 +10,7 @@ def select_season_by_year(year):
             return x
 
 year = int(input("Select a season based on its year: "))
-while year >= 2026 or year < 1949:
-    if year == 2026:
-        print("The selected year still has one season in progress")
-        year = int(input("Select a season based on its year: "))
+while year > 2026 or year < 1949:
     if year > 2026 or year < 1949:
         print("The selected year is not present in the list")
         year = int(input("Select a season based on its year: "))
@@ -28,7 +25,7 @@ events = fetch_https_data(events_endpoint)
 categories = fetch_https_data(categories_endpoint)
 
 def build_dynamic_filename(year, event, category, session_type, session_number):
-    dynamic_filename = f"motogp_{year}_{event}_{category}_{session_type}_{session_number}.json"
+    dynamic_filename = f"{category}_{year}_{event}_{session_type}_{session_number}.json"
     return dynamic_filename
 
 successful_save = 0
