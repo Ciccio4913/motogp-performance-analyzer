@@ -1,5 +1,6 @@
 from api_client import fetch_https_data, save_raw_json
 import time
+import os
 
 seasons_endpoint = "https://api.motogp.pulselive.com/motogp/v1/results/seasons"
 seasons = fetch_https_data(seasons_endpoint)
@@ -34,18 +35,23 @@ failed_calls = []
 for e in events[:2]:
     if e['test'] is True:
         continue
+
     for c in categories:
         if c['name'] == "MotoE™":
             continue
+
         sessions_endpoint =  f"https://api.motogp.pulselive.com/motogp/v1/results/sessions?eventUuid={e['id']}&categoryUuid={c['id']}"
         sessions = fetch_https_data(sessions_endpoint)
         if sessions is not None:
             time.sleep(0.5)
             for s in sessions:
+                dynamic_filename = build_dynamic_filename(year, e['short_name'], c['name'].replace("™", ""), s['type'], s['number'])
+                if os.path.exists(f"data/raw/{year}/{dynamic_filename}"):
+                    continue
+                
                 ranking_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/session/{s['id']}/classification?test=false"
                 ranking = fetch_https_data(ranking_endpoint)
                 if ranking is not None:
-                    dynamic_filename = build_dynamic_filename(year, e['short_name'], c['name'].replace("™", ""), s['type'], s['number'])
                     save_raw_json(ranking, year, dynamic_filename)
                     successful_save += 1
                     time.sleep(0.5)
