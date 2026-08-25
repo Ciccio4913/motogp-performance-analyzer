@@ -1,27 +1,5 @@
-import requests as req
-import json
+from api_client import fetch_https_data, save_raw_json
 import time
-
-def fetch_https_data(endpoint):
-    try:
-        response = req.get(endpoint, timeout=10)
-        response.raise_for_status()
-
-        try:
-            return response.json()
-        except ValueError:
-            return response.text
-
-    except req.exceptions.HTTPError as http_err:
-        print(f"HTTP error: {http_err}")
-    except req.exceptions.ConnectionError:
-        print(f"Connection error: Unable to reach URL")
-    except req.exceptions.Timeout:
-        print("Request timeout")
-    except Exception as err:
-        print(f"A generic error occurred: {err}")
-
-    return None
 
 seasons_endpoint = "https://api.motogp.pulselive.com/motogp/v1/results/seasons"
 seasons = fetch_https_data(seasons_endpoint)
@@ -49,66 +27,6 @@ categories_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/categ
 events = fetch_https_data(events_endpoint)
 categories = fetch_https_data(categories_endpoint)
 
-eventUuid = events[0]['id']
-categoryUuid = categories[0]['id']
-
-sessions_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/sessions?eventUuid={eventUuid}&categoryUuid={categoryUuid}"
-sessions = fetch_https_data(sessions_endpoint)
-
-def select_session_by_type(session_type):
-    for s in sessions:
-        if s['type'] == session_type:
-            return s
-        
-race_session = select_session_by_type('RAC')
-sessionUuid = race_session['id']
-ranking_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/session/{sessionUuid}/classification?test=false"
-ranking = fetch_https_data(ranking_endpoint)
-
-def save_raw_json(data, filename):
-    with open(f"data/raw/{filename}", "w") as f:
-        json.dump(data, f, indent=2)
-
-if events is not None:
-    print(type(events))
-    if isinstance(events, list):
-        print(len(events))
-        print(events[0])
-    elif isinstance(events, dict):
-        print(events.keys())
-    
-if categories is not None:
-    print(type(categories))
-    if isinstance(categories, list):
-        print(len(categories))
-        print(categories[0])
-        print(categories[1])
-        print(categories[2])
-        print(categories[3])
-    elif isinstance(categories, dict):
-        print(categories.keys())
-
-if sessions is not None:
-    print(type(sessions))
-    if isinstance(sessions, list):
-        print(len(sessions))
-        for s in sessions:
-            print(s['type'], s['number'])
-    elif isinstance(sessions, dict):
-        print(sessions.keys())
-
-if ranking is not None:
-    save_raw_json(ranking, "motogp_2025_thailand_race_classification.json")
-    print(type(ranking))
-    if isinstance(ranking, list):
-        print(len(ranking))
-        print(ranking[0])
-    elif isinstance(ranking, dict):
-        print(ranking.keys())
-        print(type(ranking['classification']))
-        print(len(ranking['classification']))
-        print(ranking['classification'][0])
-
 def build_dynamic_filename(year, event, category, session_type, session_number):
     dynamic_filename = f"motogp_{year}_{event}_{category}_{session_type}_{session_number}.json"
     return dynamic_filename
@@ -131,7 +49,7 @@ for e in events[:2]:
                 ranking = fetch_https_data(ranking_endpoint)
                 if ranking is not None:
                     dynamic_filename = build_dynamic_filename(year, e['short_name'], c['name'].replace("™", ""), s['type'], s['number'])
-                    save_raw_json(ranking, dynamic_filename)
+                    save_raw_json(ranking, year, dynamic_filename)
                     successful_save += 1
                     time.sleep(0.5)
                 else:
@@ -139,5 +57,5 @@ for e in events[:2]:
         else:
             failed_calls.append(f"Event:{e} | Category:{c}\n")
 
-print("Successful save: ", successful_save, "\n")
+print("Successful saves: ", successful_save, "\n")
 print("Failed calls log: ", failed_calls)
