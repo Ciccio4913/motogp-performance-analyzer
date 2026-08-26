@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 .vscode/
 .ipynb_checkpoints/
+data/raw/
+data/processed/

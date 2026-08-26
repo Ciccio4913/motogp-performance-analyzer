@@ -29,10 +29,12 @@ def build_dynamic_filename(year, event, category, session_type, session_number):
     dynamic_filename = f"{category}_{year}_{event}_{session_type}_{session_number}.json"
     return dynamic_filename
 
+api_call_to_sessions = 0
+api_call_to_rankings = 0
 successful_save = 0
 failed_calls = []
 
-for e in events[:2]:
+for e in events:
     if e['test'] is True:
         continue
 
@@ -42,6 +44,8 @@ for e in events[:2]:
 
         sessions_endpoint =  f"https://api.motogp.pulselive.com/motogp/v1/results/sessions?eventUuid={e['id']}&categoryUuid={c['id']}"
         sessions = fetch_https_data(sessions_endpoint)
+        api_call_to_sessions += 1
+        print(api_call_to_sessions,"° API call to session: ",sessions_endpoint)
         if sessions is not None:
             time.sleep(0.5)
             for s in sessions:
@@ -51,6 +55,8 @@ for e in events[:2]:
                 
                 ranking_endpoint = f"https://api.motogp.pulselive.com/motogp/v1/results/session/{s['id']}/classification?test=false"
                 ranking = fetch_https_data(ranking_endpoint)
+                api_call_to_rankings += 1
+                print(api_call_to_rankings,"° API call to ranking: ",ranking_endpoint)
                 if ranking is not None:
                     save_raw_json(ranking, year, dynamic_filename)
                     successful_save += 1
