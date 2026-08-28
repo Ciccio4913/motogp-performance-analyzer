@@ -66,5 +66,7 @@ for e in events:
         else:
             failed_calls.append(f"Event:{e} | Category:{c}\n")
 
-print("Successful saves: ", successful_save, "\n")
-print("Failed calls log: ", failed_calls)
+tot_api_calls = api_call_to_sessions + api_call_to_rankings
+print("Total API calls: ",tot_api_calls)
+print("Successful saves: ",successful_save)
+print("Failed calls log: ",failed_calls)
