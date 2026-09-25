@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+import pandas as pd
 
 selected_year = int(input("Select a season based on its year: "))
 
@@ -18,24 +19,14 @@ for file_path in file_paths:
     with open(file_path, "r") as f:
         data = json.load(f)
 
-    print(type(data))
-    print(data.keys())
-
     filename = os.path.basename(file_path)
     parts = filename.split("_")
-    print(parts)
 
     category = parts[0]
     year = parts[1]
     event = parts[2]
     session_type = parts[3]
     session_number = parts[4].replace(".json", "")
-
-    print(category)
-    print(year)
-    print(event)
-    print(session_type)
-    print(session_number)
 
     for p in data['classification']:
         row = {
@@ -58,5 +49,14 @@ for file_path in file_paths:
 
         rows.append(row)
 
-print("Rows len:", len(rows))
+print("Total rows:", len(rows))
 print(rows[-1])
+
+df = pd.DataFrame(rows)
+
+df['year'] = df['year'].astype(int)
+
+print(df.shape)
+print(df.columns)
+print(df.head())
+print(df.dtypes)
