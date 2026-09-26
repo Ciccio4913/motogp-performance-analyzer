@@ -3,6 +3,14 @@ import json
 import os
 import pandas as pd
 
+def bestlap_to_sec(best_lap):
+    if pd.isna(best_lap) or best_lap == '':
+        return None
+    parts = best_lap.split(":")
+    mins = int(parts[0])
+    sec = float(parts[1])
+    return (mins * 60) + sec
+
 selected_year = int(input("Select a season based on its year: "))
 
 while not os.path.isdir(f"data/raw/{selected_year}"):
@@ -10,8 +18,8 @@ while not os.path.isdir(f"data/raw/{selected_year}"):
     selected_year = int(input("Select a season based on its year: "))
 
 file_paths = glob.glob(f"data/raw/{selected_year}/*.json")
-print(len(file_paths))
-print(file_paths[0])
+print("File paths lenght:", len(file_paths))
+print("First file path name:", file_paths[0])
 
 rows = []
 
@@ -54,9 +62,23 @@ print(rows[-1])
 
 df = pd.DataFrame(rows)
 
+print("All position sorted:", sorted(df['position'].dropna().unique()))
+print("All points sorted:", sorted(df['points'].dropna().unique()))
+print("Total best_lap None:", df['best_lap'].isna().sum())
+print(df[df['best_lap'] == ''].shape)
+print(df[df['best_lap'] == ''].head())
+
 df['year'] = df['year'].astype(int)
+df['session_number'] = df["session_number"].replace('None', pd.NA)
+df['session_number'] = pd.to_numeric(df["session_number"])
+df['position'] = df['position'].astype('Int64')
+df['best_lap_seconds'] = df['best_lap'].apply(bestlap_to_sec)
+
+print(df[['best_lap', 'best_lap_seconds']].head(10))
 
 print(df.shape)
 print(df.columns)
 print(df.head())
 print(df.dtypes)
+
+print(df[df["session_number"].isna()].head())
