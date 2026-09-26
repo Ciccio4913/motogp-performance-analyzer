@@ -2,6 +2,7 @@ import glob
 import json
 import os
 import pandas as pd
+import numpy as np
 
 def bestlap_to_sec(best_lap):
     if pd.isna(best_lap) or best_lap == '':
@@ -9,7 +10,7 @@ def bestlap_to_sec(best_lap):
     parts = best_lap.split(":")
     mins = int(parts[0])
     sec = float(parts[1])
-    return (mins * 60) + sec
+    return round((mins * 60) + sec, 3)
 
 selected_year = int(input("Select a season based on its year: "))
 
@@ -62,23 +63,16 @@ print(rows[-1])
 
 df = pd.DataFrame(rows)
 
-print("All position sorted:", sorted(df['position'].dropna().unique()))
-print("All points sorted:", sorted(df['points'].dropna().unique()))
-print("Total best_lap None:", df['best_lap'].isna().sum())
-print(df[df['best_lap'] == ''].shape)
-print(df[df['best_lap'] == ''].head())
-
 df['year'] = df['year'].astype(int)
 df['session_number'] = df["session_number"].replace('None', pd.NA)
 df['session_number'] = pd.to_numeric(df["session_number"])
 df['position'] = df['position'].astype('Int64')
 df['best_lap_seconds'] = df['best_lap'].apply(bestlap_to_sec)
-
-print(df[['best_lap', 'best_lap_seconds']].head(10))
+df['average_speed'] = df['average_speed'].replace(0, np.nan)
+df['top_speed'] = df['top_speed'].replace(0, np.nan)
 
 print(df.shape)
-print(df.columns)
-print(df.head())
 print(df.dtypes)
 
-print(df[df["session_number"].isna()].head())
+os.makedirs("data/processed", exist_ok=True)
+df.to_csv(f"data/processed/motogp_{selected_year}_clean.csv", index=False)
