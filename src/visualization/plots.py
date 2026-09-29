@@ -14,14 +14,21 @@ df = pd.read_csv(csv_path)
 
 df['position'] = df['position'].astype('Int64')
 
-motogp_only = df[df['category'] == 'MotoGP']
-points_per_rider = motogp_only.groupby(['rider_name'])['points'].sum()
+category = "MotoGP"
+
+category_only = df[df['category'] == category]
+points_per_rider = category_only.groupby(['rider_name'])['points'].sum()
 top10 = points_per_rider.sort_values(ascending=False).head(10)
 
 plt.figure(figsize=(10, 6))
-plt.bar(top10.index, top10.values)
+bars = plt.bar(top10.index, top10.values)
+plt.bar_label(bars)
 plt.xticks(rotation=45, ha='right')
-plt.title("Piloti")
-plt.ylabel("Punti")
+plt.title(f"Top 10 {category} pilots {selected_year}")
+plt.ylabel("Points")
 plt.tight_layout()
+
+os.makedirs(f"visualizations/{selected_year}", exist_ok=True)
+plt.savefig(f"visualizations/{selected_year}/top10_points_{category}_{selected_year}.png", dpi=150)
+
 plt.show()
