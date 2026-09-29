@@ -47,7 +47,7 @@ for e in events:
         api_call_to_sessions += 1
         print(api_call_to_sessions,"° API call to session: ",sessions_endpoint)
         if sessions is not None:
-            time.sleep(0.5)
+            time.sleep(0.2)
             for s in sessions:
                 dynamic_filename = build_dynamic_filename(year, e['short_name'], c['name'].replace("™", ""), s['type'], s['number'])
                 if os.path.exists(f"data/raw/{year}/{dynamic_filename}"):
@@ -60,7 +60,7 @@ for e in events:
                 if ranking is not None:
                     save_raw_json(ranking, year, dynamic_filename)
                     successful_save += 1
-                    time.sleep(0.5)
+                    time.sleep(0.2)
                 else:
                     failed_calls.append(f"Event:{e} | Category:{c} | Session:{s}\n")
         else:

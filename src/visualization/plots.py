@@ -15,13 +15,22 @@ df = pd.read_csv(csv_path)
 df['position'] = df['position'].astype('Int64')
 
 category = "MotoGP"
-
 category_only = df[df['category'] == category]
 points_per_rider = category_only.groupby(['rider_name'])['points'].sum()
+constructor_of_rider = category_only.groupby('rider_name')['constructor_name'].first()
+
+color_map = {"Aprilia": "white", "Ducati": "red", "KTM": "orange", "Yamaha": "blue", "Honda": "black"}
+
 top10 = points_per_rider.sort_values(ascending=False).head(10)
 
+bar_colors = []
+for rider in top10.index:
+    constructor = constructor_of_rider[rider]
+    color = color_map.get(constructor, "gray")
+    bar_colors.append(color)
+
 plt.figure(figsize=(10, 6))
-bars = plt.bar(top10.index, top10.values)
+bars = plt.bar(top10.index, top10.values, color=bar_colors, edgecolor="black")
 plt.bar_label(bars)
 plt.xticks(rotation=45, ha='right')
 plt.title(f"Top 10 {category} pilots {selected_year}")
