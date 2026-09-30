@@ -17,7 +17,7 @@ BASE_COLORS = {
     "Honda": "black",
 }
 
-FALLBACK_COLORS = ["tab:gree", "tab:purple", "tab:brown", "tab:pink", "tab:cyan", "tab:olive"]
+FALLBACK_COLORS = ["tab:green", "tab:purple", "tab:brown", "tab:pink", "tab:cyan", "tab:olive"]
 
 def available_years():
     years = []
@@ -74,13 +74,13 @@ def top_riders_chart(df, category, year, n=10):
     for name, color in legend_items.items():
         patch_list.append(Patch(facecolor=color, edgecolor="black", label=name))
 
-    fig, ax = plt.subplot(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
     bars = ax.bar(top.index, top.values, color=bar_colors, edgecolor="black")
     ax.bar_label(bars)
     ax.margins(y=0.1)
     ax.set_title(f"Top {len(top)} {category} riders by points - {year}")
     ax.set_ylabel("Points")
-    ax.legend(handles=patch_list, list="Constructor")
+    ax.legend(handles=patch_list, title="Constructor")
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
     fig.tight_layout()
     return fig
