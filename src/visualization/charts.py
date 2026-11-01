@@ -1,8 +1,8 @@
 from pathlib import Path
-from matplotlib.patches import Patch
 
-import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.figure import Figure
+from matplotlib.patches import Patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
@@ -26,14 +26,18 @@ def available_years():
         years.append(int(year_text))
     return sorted(years)
 
+
 def load_season(year):
     df = pd.read_csv(PROCESSED_DIR / f"motogp_{year}_clean.csv")
     df["position"] = df["position"].astype("Int64")
     return df
 
+
 def available_categories(df):
-    present = set(df["category"].unique())
-    return [category for category in CATEGORY_ORDER if category in present]
+    present = list(df["category"].dropna().unique())
+    known = [category for category in CATEGORY_ORDER if category in present]
+    others = sorted(category for category in present if category not in CATEGORY_ORDER)
+    return known + others
 
 def build_color_lookup(constructors):
     lookup = {}
@@ -45,8 +49,13 @@ def build_color_lookup(constructors):
             lookup[name] = next(fallback, "gray")
     return lookup
 
+def _new_figure():
+    fig = Figure(figsize=(10, 6), layout="tight")
+    return fig, fig.subplots()
+
+
 def _empty_figure(message):
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = _new_figure()
     ax.text(0.5, 0.5, message, ha="center", va="center", fontsize=14)
     ax.axis("off")
     return fig
@@ -56,17 +65,17 @@ def top_riders_chart(df, category, year, n=10):
     points_per_rider = data.groupby("rider_name")["points"].sum()
     top = points_per_rider.sort_values(ascending=False).head(n)
 
-    if top.empty:
-        return _empty_figure(f"No data for {category} {year}")
+    if top.empty or top.sum() == 0:
+        return _empty_figure(f"No points for {category} {year}")
 
     constructor_of_rider = data.groupby("rider_name")["constructor_name"].first()
-    colors = build_color_lookup(data["constructor_name"].unique())
+    colors = build_color_lookup(data["constructor_name"].dropna().unique())
 
     bar_colors = []
     legend_items = {}
     for rider in top.index:
         constructor = constructor_of_rider[rider]
-        color = colors[constructor]
+        color = colors.get(constructor, "gray")
         legend_items[constructor] = color
         bar_colors.append(color)
 
@@ -74,16 +83,18 @@ def top_riders_chart(df, category, year, n=10):
     for name, color in legend_items.items():
         patch_list.append(Patch(facecolor=color, edgecolor="black", label=name))
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = _new_figure()
     bars = ax.bar(top.index, top.values, color=bar_colors, edgecolor="black")
     ax.bar_label(bars)
     ax.margins(y=0.1)
     ax.set_title(f"Top {len(top)} {category} riders by points - {year}")
     ax.set_ylabel("Points")
     ax.legend(handles=patch_list, title="Constructor")
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
-    fig.tight_layout()
+    for label in ax.get_xticklabels():
+        label.set_rotation(45)
+        label.set_horizontalalignment("right")
     return fig
+
 
 def constructor_points_chart(df, category, year):
     data = df[df["category"] == category]
@@ -101,13 +112,12 @@ def constructor_points_chart(df, category, year):
         bar_colors.append(colors[name])
         labels.append(f"{points[name]:g}\n({share[name]:.0f}%)")
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = _new_figure()
     bars = ax.bar(points.index, points.values, color=bar_colors, edgecolor="black")
     ax.bar_label(bars, labels=labels)
     ax.margins(y=0.12)
     ax.set_title(f"Rider points by constructor - {category} {year}")
     ax.set_ylabel("Points")
-    fig.tight_layout()
     return fig
 
 def retirements_chart(df, category, year, n=10):
@@ -118,11 +128,10 @@ def retirements_chart(df, category, year, n=10):
     if per_team.empty:
         return _empty_figure(f"No race non-finishes for {category} {year}")
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = _new_figure()
     bars = ax.barh(per_team.index, per_team.values, color="tab:red", edgecolor="black")
     ax.bar_label(bars)
     ax.invert_yaxis()
     ax.set_title(f"Race non-finishes by team - {category} {year}")
     ax.set_xlabel("Non-finishes")
-    fig.tight_layout()
     return fig
