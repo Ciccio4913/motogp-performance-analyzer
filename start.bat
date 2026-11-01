@@ -3,7 +3,10 @@ setlocal EnableExtensions
 rem Move to the folder of this file, wherever it is launched from
 cd /d "%~dp0"
 
-set "VENV=.venv"
+rem The virtual environment lives outside the project folder on purpose.
+rem Windows limits paths to 260 characters and PySide6 has very long file names,
+rem so installing inside a deep folder such as Downloads can fail.
+set "VENV=%LOCALAPPDATA%\MotoGPAnalyzer\venv"
 set "VENV_PY=%VENV%\Scripts\python.exe"
 set "INSTALLED=%VENV%\requirements.installed.txt"
 set "NOPY_REASON="
@@ -61,7 +64,8 @@ exit /b 1
 
 :pip_failed
 echo.
-echo Installation failed. Check your internet connection and run this file again.
+echo Installation failed. See the error above. Common causes are a missing
+echo internet connection or a very long user name. Run this file again to retry.
 pause
 exit /b 1
 

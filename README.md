@@ -62,6 +62,7 @@ Machine learning models for performance prediction are the next step of the proj
 1. Install Python 3.12 from [python.org](https://www.python.org/downloads/) and tick **Add python.exe to PATH** in the installer.
 2. Download or clone this repository.
 3. Double-click `start.bat`. The first run creates a virtual environment and installs the libraries (it can take a few minutes, PySide6 is a large download). Later runs start immediately.
+4. The libraries are installed in %LOCALAPPDATA%\MotoGPAnalyzer; delete that folder to uninstall them
 
 ### Using the app
 
