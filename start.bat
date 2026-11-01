@@ -6,6 +6,7 @@ cd /d "%~dp0"
 set "VENV=.venv"
 set "VENV_PY=%VENV%\Scripts\python.exe"
 set "INSTALLED=%VENV%\requirements.installed.txt"
+set "NOPY_REASON="
 
 rem Last Python 3.12 release with an official Windows installer, 64-bit
 set "PY_WINGET_ID=Python.Python.3.12"
@@ -45,7 +46,9 @@ exit /b 0
 :no_python
 echo.
 echo Python 3.11, 3.12 or 3.13 is required and could not be installed automatically.
-echo Install Python 3.12 from https://www.python.org/downloads/
+if defined NOPY_REASON echo %NOPY_REASON%
+echo.
+echo You can install Python 3.12 manually from https://www.python.org/downloads/
 echo tick "Add python.exe to PATH" in the installer, then run this file again.
 pause
 exit /b 1
@@ -101,22 +104,40 @@ echo winget could not install Python. Trying the direct download...
 
 :download_python
 echo.
-echo Downloading the official installer from python.org...
+rem Do not start a second installer while one from a previous attempt is still running
+tasklist /fi "imagename eq python-3.12.10-amd64.exe" 2>nul | find /i "python-3.12.10-amd64.exe" >nul
+if not errorlevel 1 goto installer_running
+
 set "INSTALLER=%TEMP%\python-3.12.10-amd64.exe"
-curl.exe -L --fail --silent --show-error -o "%INSTALLER%" "%PY_URL%"
-if errorlevel 1 (
-    echo Download failed. Check your internet connection.
-    exit /b 0
-)
+del "%INSTALLER%" >nul 2>&1
+echo Downloading the official installer from python.org...
+curl.exe -L --fail --show-error --progress-bar -o "%INSTALLER%" "%PY_URL%"
+if errorlevel 1 goto download_failed
+
 rem Run the installer only if it is signed by the Python Software Foundation
 powershell -NoProfile -Command "$s = Get-AuthenticodeSignature -FilePath '%INSTALLER%'; if ($s.Status -eq 'Valid' -and $s.SignerCertificate.Subject -like '*Python Software Foundation*') { exit 0 } else { exit 1 }"
-if errorlevel 1 (
-    echo The installer signature could not be verified. Stopping for safety.
-    del "%INSTALLER%" >nul 2>&1
-    exit /b 0
-)
-echo Installing Python, this takes a minute...
-start /wait "" "%INSTALLER%" /quiet InstallAllUsers=0 PrependPath=1 Include_launcher=1 Include_test=0
+if errorlevel 1 goto signature_failed
+
+echo.
+echo Installing Python. A small progress window will appear. This can take
+echo a few minutes: please do not close this window.
+start /wait "" "%INSTALLER%" /passive InstallAllUsers=0 PrependPath=1 Include_launcher=1 Include_test=0 /log "%TEMP%\python-install.log"
+set "INSTALL_EXIT=%errorlevel%"
 del "%INSTALLER%" >nul 2>&1
 call :find_python
+if defined PYCMD exit /b 0
+set "NOPY_REASON=The installer finished with code %INSTALL_EXIT% but Python was not found. Log file: %TEMP%\python-install.log"
+exit /b 0
+
+:installer_running
+set "NOPY_REASON=The Python installer from a previous attempt is still running. Wait until it finishes, then run this file again."
+exit /b 0
+
+:download_failed
+set "NOPY_REASON=The download failed. Check your internet connection."
+exit /b 0
+
+:signature_failed
+del "%INSTALLER%" >nul 2>&1
+set "NOPY_REASON=The installer signature could not be verified, so it was not run."
 exit /b 0
