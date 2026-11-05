@@ -4,7 +4,7 @@ Desktop application to download, clean, visualize and model public MotoGP result
 
 ![Top 10 MotoGP riders by points, 2025](visualizations/2025/top10_points_MotoGP_2025.png)
 
-![MotoGP Performance Analyzer](docs/screenshot.png)
+![MotoGP Performance Analyzer](docs/main_window.png)
 
 ---
 
@@ -112,6 +112,10 @@ MotoGP API  →  JSON files  →  Pandas cleaning  →  CSV files  →  charts i
 ---
 
 ## 🤖 Machine learning
+
+![Machine learning training window](docs/ml_training_window.png)
+
+![Machine learning predicting window](docs/ml_predicting_window.png)
 
 **Task:** predict the finishing position of each rider in a race, using only information available before the start.
 
